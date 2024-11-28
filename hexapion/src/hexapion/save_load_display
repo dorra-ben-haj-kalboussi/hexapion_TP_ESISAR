@@ -1,0 +1,115 @@
+
+	////////////////////////////////////////////////////////////////////////////////////////////
+	// save data about the agent and space memory
+	public void save(){
+		
+		try {
+			PrintWriter file  = new PrintWriter(new FileWriter(PATH+name+".txt"));
+			
+			// save iteration number and epsilon value
+			file.println(nbStep+" "+epsilon);
+			
+			for (int i=0;i<states.size();i++){
+				
+				// save state
+				file.println(states.get(i));
+				// save action list
+				for (int a=0;a<actions.get(i).length;a++) file.print(actions.get(i)[a]+" ");
+				file.println();
+				// save Qtable line
+				for (int a=0;a<Qtable.get(i).length;a++) file.print(Qtable.get(i)[a]+" ");
+				file.println();
+			}
+			file.close();
+			
+			System.out.println("agent "+name+" saved");
+		}
+		catch (Exception e) {e.printStackTrace();}
+	}
+	
+	/////////////////////////////////////////////////////////////////////////
+	// load properties from a save file
+	public void loadFile(){
+		
+		
+		String[] elements;
+		
+		try {
+			InputStream ips=new FileInputStream(PATH+name+".txt"); 
+			InputStreamReader ipsr=new InputStreamReader(ips);
+			BufferedReader br=new BufferedReader(ipsr);
+			String l;
+			
+			System.out.println("Load Q-table of agent "+name);
+			
+			// read first line
+			l=br.readLine();
+			elements=l.split(" ");
+			
+			// write step number
+			nbStep=Integer.parseInt(elements[0]);
+			epsilon=Float.parseFloat(elements[1]);
+			
+			l=br.readLine();
+			
+			while (l!=null){
+				
+				elements=l.split(" ");
+				
+				// add state
+				states.add(Integer.parseInt(elements[0]));
+				
+				l=br.readLine();
+				elements=l.split(" ");
+				
+				// add action list
+				if (elements[0].equals("")) actions.add(new int[0]);
+				else{
+					int[] temp_action=new int[elements.length];
+					for (int i=0;i<elements.length;i++) temp_action[i]=Integer.parseInt(elements[i]);
+					actions.add(temp_action);
+				}
+				
+				l=br.readLine();
+				elements=l.split(" ");
+				
+				// add Q-table values
+				if (elements[0].equals("")) Qtable.add(new float[0]);
+				else{
+					float[] temp_table=new float[elements.length];
+					for (int i=0;i<elements.length;i++) temp_table[i]=Float.parseFloat(elements[i]);
+					Qtable.add(temp_table);
+				}
+				
+				l=br.readLine();
+			}
+			br.close();
+		}
+		catch (Exception e) {System.out.println("no file for agent "+name);}	
+	}
+	
+	
+	/////////////////////////////////////////////////////////////////////////	
+	public void paintComponent(Graphics g){
+		
+		g.setColor(Color.white);
+		g.fillRect(0,0, this.getWidth(), this.getHeight());
+		
+		if (agent.stateIndex!=-1){
+			g.setColor(Color.red);
+			g.fillRect(5, 15+15*agent.stateIndex, 620, 12); // current state
+		}
+		
+		g.setColor(Color.black);
+		for (int i=0;i<14;i++){		// labels of action index
+			g.drawString(""+i, 80+40*i, 10);
+		}
+		for (int i=0;i<agent.states.size();i++){ // lines of the Q-table
+			g.drawString(""+agent.states.get(i), 10, 25+15*i);
+			
+			for (int j=0;j<agent.actions.get(i).length;j++){
+				g.drawString(""+(float)Math.round(agent.Qtable.get(i)[j]*100)/100, 
+						     80+40*agent.actions.get(i)[j], 25+15*i);
+			}
+		}
+	}
